@@ -103,7 +103,7 @@ unzip -j -o "${ZIPFILE}" 'service.sh' -d ${MODPATH} >&2
 unzip -j -o "${ZIPFILE}" 'uninstall.sh' -d ${MODPATH} >&2
 unzip -j -o "${ZIPFILE}" 'box_service.sh' -d ${box_service_dir} >&2
 
-ui_print "- extract binary-$arch "
+ui_print "- extract binary-$ARCH "
 tar -xjf ${MODPATH}/binary/${ARCH}.tar.bz2 -C ${box_data_dir_kernel}/&& echo "- extar kernel Succes" || echo "- extar kernel gagal"
 mv ${box_data_dir_kernel}/setcap ${MODPATH}${bin_path}/
 mv ${box_data_dir_kernel}/getpcaps ${MODPATH}${bin_path}/
@@ -111,7 +111,7 @@ mv ${box_data_dir_kernel}/getcap ${MODPATH}${bin_path}/
 mv ${box_data_dir}/scripts/settings.ini ${box_data_dir}/
 mv ${box_data_dir}/scripts/xray/confs ${box_data_dir}/xray/
 mv ${box_data_dir}/scripts/sing-box ${box_data_dir}/
-mv ${box_data_dir}/scripts/clash ${box_data_dir}/
+mv ${box_data_dir}/scripts/clash/* ${box_data_dir}/clash/
 
 if [ ! -f "${bin_path}/ss" ] ; then
     mv ${box_data_dir_kernel}/ss ${MODPATH}${bin_path}/
