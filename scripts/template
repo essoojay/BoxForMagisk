@@ -1,0 +1,94 @@
+tproxy-port: 9898
+mixed-port: 7890
+mode: rule
+allow-lan: true
+unified-delay: true
+bind-address: '*'
+log-level: warning
+ipv6: false
+geodata-mode: true
+external-controller: 0.0.0.0:9090
+external-ui: ../dashboard/dist
+tcp-concurrent: true
+interface-name: ""
+enable-process: false
+geodata-loader: memconservative
+# routing-mark: 233
+inbound-tfo: true
+secret: ""
+geox-url: {
+  mmdb: "", geoip: "https://github.com/v2fly/geoip/raw/release/geoip-only-cn-private.dat", geosite: "https://github.com/taamarin/v2ray-rules-dat/raw/release/GeoSite.dat"
+}
+profile:
+  store-selected: true
+  store-fake-ip: false
+experimental: {
+    sniff-tls-sni: true,
+    fingerprint: ""
+}
+sniffer:
+  enable: false
+  sniffing: [
+    tls, http
+  ]
+  force-domain:
+    - '+'
+  skip-domain: 
+    - '+.google.com'
+  port-whitelist: [
+    443, 80
+  ]
+  force-dns-mapping: true
+  parse-pure-ip: true
+hosts: {
+  "cacerts.digicert.com": "104.21.21.147", "ota.googlezip.net": "127.0.0.1", "ota-cache1.googlezip.net": "127.0.0.1", "ota-cache2.googlezip.net": "127.0.0.1"
+}
+tun:
+  enable: false
+  device: utun
+  stack: system
+  mtu: 9000
+  dns-hijack:
+    - any:53
+  auto-route: false
+  auto-detect-interface: false
+  strict_route: true
+  include-android-user: 
+    - 0
+    - 10
+  inet4_address: 198.18.0.1/16
+  #  inet6_address: fdfe:dcba:9876::1/126
+  #  inet4_route_address: 198.18.0.1/16
+  #  inet6_route_address: fdfe:dcba:9876::1/16
+dns:
+  enable: true
+  ipv6: true
+  prefer-h3: false
+  default-nameserver:
+    - 'tls://8.8.8.8'           # Google
+    - 'tcp://1.0.0.1'               # Cloudflare
+  listen: 0.0.0.0:1053
+  use-hosts: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter: [
+    "*.local", "*.localhost"
+  ]
+  nameserver:
+    - 'https://1.1.1.1'               # Cloudflare
+    - 'https://8.8.8.8'           # Google
+  fallback:
+    - 'tcp://1.0.0.1'               # Cloudflare
+    - 'tcp://8.8.4.4'           # Google
+    - 'tcp://9.9.9.9'              # Quad9
+  fallback-filter:
+    geoip: false
+    geoip-code: "ID"
+    geosite: []
+    ipcidr: [
+      0.0.0.0/8,
+      10.0.0.0/8
+    ]
+    domain: [
+      '+.google.com','+.youtube.com'
+    ]

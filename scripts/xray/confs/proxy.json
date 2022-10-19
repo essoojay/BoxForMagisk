@@ -1,0 +1,70 @@
+{
+  "outbounds": [
+    {
+      "protocol": "vmess",
+      "tag": "proxy",
+      "mux": {
+        "concurrency": -1,
+        "enabled": false
+      },
+      "settings": {
+        "vnext": [
+          {
+            "address": "",
+            "port": 443,
+            "users": [
+              {
+                "alterId": 0,
+                "encryption": "",
+                "flow": "",
+                "id": "UUID",
+                "level": 8,
+                "security": "auto"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "tls",
+        "tlsSettings": {
+          "allowInsecure": true,
+          "serverName": ""
+        },
+        "wsSettings": {
+          "path": "/path",
+          "headers": {
+            "Host": ""
+          }
+        },
+        "sockopt": {
+          "domainStrategy": "UseIP"
+        }
+      }
+    },
+    {
+      "tag": "direct",
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIP"
+      }
+    },
+    {
+      "tag": "block",
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "http"
+        }
+      }
+    },
+    {
+      "tag": "dns-out",
+      "protocol": "dns",
+      "settings": {
+        "address": "8.8.8.8"
+      }
+    }
+  ]
+}

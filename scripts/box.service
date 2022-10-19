@@ -1,0 +1,321 @@
+#!/system/bin/sh
+
+scripts=`realpath $0`
+scripts_dir=`dirname ${scripts}`
+. /data/box/settings.ini
+
+cmd_crond() {
+    nohup ${busybox_path} crond -c ${box_run_path} > /dev/null 2>&1 &
+}
+
+dow_config() {
+    if [ "${config_online}" == "true" ]
+    then
+        if ! [ "$(head -1 ${box_run_path}/root)" == "disable" ]
+        then
+            if ! (${scripts_dir}/box.tool -o)
+            then
+                echo $date_log"err: failed to download config,。" >> ${box_logs_file}
+                echo $date_log"err: make sure you are connected to the internet。" >> ${box_logs_file}
+                exit 1
+            fi
+        fi
+    fi
+}
+
+date_clash() {
+    echo -n "" > ${box_logs_file} && echo "${date_day}" >> ${box_logs_file}
+    echo "Box for Magisk v2.0" > /dev/null 2>&1
+}
+
+replace_kernel() {
+    chmod 0755 ${box_lib}/*
+    if [ "${box_bin_name}" == "clash" ]
+    then
+        if [ "${use_premium}" == "true" ]
+        then
+            cp -f ${box_Premium} ${box_bin}/clash \
+            && echo "" || echo $date_log"err: failed to replace kernel。" >> ${box_logs_file}
+        else
+            cp -f ${box_Meta} ${box_bin}/clash \
+            && echo "" || echo $date_log"err: failed to replace kernel。" >> ${box_logs_file}
+        fi
+    elif [ "${box_bin_name}" == "xray" ]
+    then
+        cp -f ${box_lib}/xray ${box_bin}/xray \
+        && echo "" || echo $date_log"err: failed to replace kernel。" >> ${box_logs_file}
+    elif [ "${box_bin_name}" == "v2fly" ]
+    then
+        cp -f ${box_lib}/v2fly ${box_bin}/v2fly \
+        && echo "" || echo $date_log"err: failed to replace kernel。" >> ${box_logs_file}
+    elif [ "${box_bin_name}" == "sing-box" ]
+    then
+        cp -f ${box_lib}/sing-box ${box_bin}/sing-box \
+        && echo "" || echo $date_log"err: failed to replace kernel。" >> ${box_logs_file}
+    else
+        echo $date_log"err: $box_bin_name is unknown。" >> ${box_logs_file}
+        exit 1
+    fi
+}
+
+use_clash() {
+    if [ "${use_premium}" == "true" ]
+    then
+        if [ -f "${box_bin_path}" ]
+        then
+            echo $date_log"info: Clash Premium is enable。" >> ${box_logs_file}
+        else
+            echo $date_log"err: $box_bin_name kernel ${box_bin_path} file is missing !!!。" >> ${box_logs_file}
+            exit 1
+        fi
+    else
+        if [ -f "${box_bin_path}" ]
+        then
+            echo $date_log"info: Clash Meta is enable。" >> ${box_logs_file}
+        else
+            echo $date_log"err: $box_bin_name kernel ${box_bin_path} file is missing !!!。" >> ${box_logs_file}
+            exit 1
+        fi
+    fi
+}
+
+ceks_clash() {
+    local PID=`cat ${box_pid_file} 2> /dev/null`
+    if (cat /proc/${PID}/cmdline | grep -q ${box_bin_name})
+    then
+        echo $date_log"warn: $box_bin_name service still started" >> ${box_logs_file}
+        ${scripts_dir}/box.iptables -s
+        exit 1
+    fi
+}
+
+tun_tproxy() {
+    # rm -rf /data/box/run/lastwifi && rm -rf /data/box/run/lastmobile
+    if [ "${box_tun_status}" == "true" ]
+    then
+        if [ ${arm} == "aarch64" ]
+        then
+            mkdir -p /dev/net
+            [ ! -L /dev/net/tun ] && ln -sf /dev/tun /dev/net/tun
+            echo $date_log"info: turn on tun mode, stack: [${box_stack_mode}] " >> ${box_logs_file}
+            echo $date_log"info: create /dev/net/tun。" >> ${box_logs_file}
+            sed -i 's/auto-detect-interface:.*/auto-detect-interface: true/' $box_template
+            sed -i 's/auto-route:.*/auto-route: true/' $box_template
+            sed -i 's/tproxy-port:.*/tproxy-port: 0/' $box_template
+        else
+            echo $date_log"err: tun only for arm64/armv8。" >> ${box_logs_file}
+            exit 1
+        fi
+    else
+        sed -i 's/auto-detect-interface:.*/auto-detect-interface: false/' $box_template
+        sed -i 's/auto-route:.*/auto-route: false/' $box_template
+        sed -i 's/tproxy-port:.*/tproxy-port: 9898/' $box_template
+        echo $date_log"info: turn on tproxy mode。" >> ${box_logs_file}
+    fi
+}
+
+temporary_config_file() {
+    sed -i '/^[  ]*$/d' ${box_template}
+    if [ -f "${box_template}" ]
+    then
+        if [ -f "${box_config_file}" ]
+        then
+           cp -f ${box_template} ${temporary_config_file}.swp && echo "\n" >> ${temporary_config_file}.swp
+           sed -n -E '/^proxies:$/,$p' ${box_config_file} >> ${temporary_config_file}.swp
+           sed -i '/^[  ]*$/d' ${temporary_config_file}.swp
+        else
+           echo $date_log"err: ${box_config_file} file is missing!!!" >> ${box_logs_file}
+           exit 1
+        fi
+    else
+        echo $date_log"err: ${box_template} file is missing !!!" >> ${box_logs_file}
+        exit 1
+    fi
+
+    mv ${temporary_config_file}.swp ${temporary_config_file} \
+    && echo $date_log"info: merge files ${box_config_file} & template Succes。" >> ${box_logs_file} || echo $date_log"err: merge files ${box_config_file} & template failed !!!" >> ${box_logs_file}
+
+    if [ ! -f "${temporary_config_file}" ]
+    then
+       echo $date_log"err: ${temporary_config_file} file is missing !!!。" >> ${box_logs_file}
+       exit 1
+    fi
+}
+
+crontab_sec() {
+        if [ ! "${schedule_update_core}" == "false" ]
+        then
+            echo "${schedule_update_core} ${scripts_dir}/box.tool -k" >> ${box_run_path}/root \
+            && echo $date_log"info: Crontab Update kernel (${schedule_update_core})" >> ${box_logs_file}
+        else
+            echo $date_log"info: Update kernel is disable。" >> ${box_logs_file}
+        fi
+        if [ ! "${update_interval}" == "false" ]
+        then
+            echo "${update_interval} ${scripts_dir}/box.tool -s" >> ${box_run_path}/root \
+            && echo $date_log"info: Crontab 'Geo' and 'Subscription' (${update_interval})。" >> ${box_logs_file}
+            echo $date_log"info: Geox (${auto_updateGeoX})。" >> ${box_logs_file}
+            echo $date_log"info: Subscription (${auto_updateSubcript})。" >> ${box_logs_file}
+        else
+            echo $date_log"info: Crontab GeoX & Subscription is disable" >> ${box_logs_file}
+        fi
+}
+
+. /data/box/scripts/box.alive
+
+cgroup_limit() {
+            if [ "${Cgroup_memory}" == "true" ]
+            then
+                if ! (${scripts_dir}/box.tool -l)
+                then
+                    echo $date_log"warn: kernel does not support cgroup">> ${box_logs_file}
+                    echo $date_log"warn: will not affect $box_bin_name">> ${box_logs_file}
+                else
+                    echo $date_log"info: Cgroup limit: $Cgroup_memory_limit">> ${box_logs_file}
+                fi
+            fi
+}
+
+start_clash() {
+    if [ "${box_bin_name}" == "clash" ]
+    then
+        cmd_crond
+        dow_config
+    fi
+
+    date_clash
+
+    if [ "${box_bin_name}" == "clash" ]
+    then
+        replace_kernel
+        if (${box_bin_path} -v > /dev/null 2>&1)
+        then
+            echo "$(${box_bin_path} -v)" >> ${box_logs_file}
+        else
+            echo $date_log"err: kernel ${box_bin_path} corrupted files " >> ${box_logs_file}
+            exit 1
+        fi
+    elif [ "${box_bin_name}" == "sing-box" ]
+    then
+        replace_kernel
+        if (${box_bin_path} version > /dev/null 2>&1)
+        then
+            rm -rf $box_run_path/root && rm -rf $box_run_path/*.yaml
+            echo "$(${box_bin_path} version)" >> ${box_logs_file}
+        else
+            echo $date_log"err: kernel ${box_bin_path} corrupted files " >> ${box_logs_file}
+            exit 1
+        fi
+    else
+        replace_kernel
+        if (${box_bin_path} version > /dev/null 2>&1)
+        then
+            rm -rf $box_run_path/root && rm -rf $box_run_path/*.yaml
+        else
+            echo $date_log"err: kernel ${box_bin_path} corrupted files " >> ${box_logs_file}
+            exit 1
+        fi
+    fi
+
+    echo "CPU: null / RES: null" >> $box_logs_file
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >> ${box_logs_file}
+
+    if [ "${box_bin_name}" == "clash" ]
+    then
+        use_clash
+        echo $date_log"info: konfigurasi ${box_config_file}。" >> ${box_logs_file}
+        ceks_clash
+        tun_tproxy
+        temporary_config_file
+    fi
+
+    chown root:net_admin ${box_bin_path}
+    chmod 6755 ${box_bin_path}
+
+    setcap 'cap_net_admin,cap_net_raw+ep' ${box_bin_path}
+
+    if [ "${box_bin_name}" == "clash" ]
+    then
+        chown root:net_admin ${temporary_config_file}
+        chmod 0755 ${temporary_config_file}
+        # CRONTAB
+        ${busybox_path} crontab -c ${box_run_path} -r
+        touch ${box_run_path}/root
+        chmod 0600 ${box_run_path}/root
+        crontab_sec
+    else
+        chown 0:3005 $box_data_dir/xray/confs/*.json
+        chmod 0755 $box_data_dir/xray/confs/*.json
+    fi
+
+    run_clash
+    cgroup_limit
+
+    # USAGE
+    if [ "$run_usage" == "true" ]
+    then
+        sed -i "s/usage_name=.*/usage_name=${box_bin_name}/" $box_scripts_dir/usage.sh
+        nohup ${scripts_dir}/usage.sh > /dev/null 2>&1 &
+    else
+        echo $date_log"info: Usage RES: / CPU: is disabled" >> ${box_logs_file}
+    fi
+}
+
+kill_clash() {
+    if ! [ "${box_bin_name}" == "clash" ]
+    then
+        kill `cat ${box_pid_file}`
+    fi
+
+    if (ps -ef > /dev/null 2>&1)
+    then
+        clashkill=$(ps -ef | grep root | grep "clash -d /data/box" | ${busybox_path} awk '{ print $2 }' | sort -u)
+        for clashkil in ${clashkill[*]}
+        do
+              kill ${clashkil}
+        done
+        return 0
+    fi
+}
+
+kill_tool() {
+    cronkill=$(ps -ef | grep root | grep "crond -c /data/box/" | ${busybox_path} awk '{ print $2 }' | sort -u)
+    for cron in ${cronkill[*]}
+    do
+       kill ${cron}
+    done
+
+    if (kill `cat ${box_run_path}/dnstt.pid`)
+    then
+        rm -rf ${box_run_path}/dnstt.pid
+        rm -rf $box_bin/dnstt-client
+        echo $date_log"warn: $dnstt_bin_name terminated。" >> ${box_logs_file}
+    fi
+}
+
+stop_clash() {
+    if kill_clash
+    then
+        rm -rf ${box_pid_file}
+    fi
+
+    kill_tool
+
+    rm -rf /data/box/kernel/$box_bin_name
+    echo $date_log"warn: $box_bin_name shutting down。" >> ${box_logs_file}
+}
+
+while getopts ":sk" signal ; do
+    case ${signal} in
+        s)
+            stop_clash >> /dev/null 2>&1
+            start_clash
+            ;;
+        k)
+            stop_clash
+            ;;
+        ?)
+            echo ""
+            ;;
+    esac
+done

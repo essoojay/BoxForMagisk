@@ -1,0 +1,34 @@
+#!/system/bin/sh
+
+scripts=`realpath $0`
+scripts_dir=`dirname ${scripts}`
+service_path="/data/box/scripts/box.service"
+iptables_path="/data/box/scripts/box.iptables"
+logs_service="/data/box/run/service.log"
+
+events=$1
+monitor_dir=$2
+monitor_file=$3
+
+create_run() {
+    if [ ! -d "/data/box/run" ]
+    then
+        mkdir -p /data/box/run
+    fi
+}
+
+service_control() {
+    if [ "${monitor_file}" = "disable" ]
+    then
+        if [ "${events}" = "d" ]
+        then
+            rm -rf /data/box/run/*.log
+            ${service_path} -s &> ${logs_service} && ${iptables_path} -s &>> ${logs_service} &
+        elif [ "${events}" = "n" ]
+        then
+            ${service_path} -k &>> ${logs_service} && ${iptables_path} -k &>> ${logs_service} &
+        fi
+    fi
+}
+create_run
+service_control

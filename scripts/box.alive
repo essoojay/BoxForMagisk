@@ -1,0 +1,122 @@
+run_clash() {
+    ulimit -SHn 1000000
+    # SING-BOX
+    if [ "${box_bin_name}" == "sing-box" ] ; then
+        if [ "${box_tun_status}" == "true" ]
+        then
+            mkdir -p /dev/net
+            [ ! -L /dev/net/tun ] && ln -sf /dev/tun /dev/net/tun
+            echo $date_log"info: sing-box tun ." >> ${box_logs_file}
+        else
+            echo $date_log"info: sing-box tproxy ." >> ${box_logs_file}
+        fi
+
+        ${box_bin_path} check -D ${box_data_dir}/sing-box > ${box_run_path}/err.log 2>&1 
+        if [ "$?" = "0" ] ; then
+            echo $date_log"info: starting ${box_bin_name} service." >> ${box_logs_file}
+            nohup ${busybox_path} setuidgid 0:3005 ${box_bin_path} run -D ${box_data_dir}/${box_bin_name} > /dev/null 2> ${box_run_path}/warn.log &
+            echo -n $! > ${box_pid_file}
+            sed -i 's/FATAL*//' ${box_run_path}/warn.log
+            while read p
+            do
+                echo ${date_log}"info:" "$p" >> ${box_logs_file}
+            done <${box_run_path}/err.log
+        else
+            echo -n $! > ${box_pid_file}
+            sed -i 's/FATAL*//' ${box_run_path}/err.log
+            while read p
+            do
+                echo ${date_log}"err:" "$p" >> ${box_logs_file}
+            done <${box_run_path}/err.log
+            echo $date_log"err: configuration check failed, please check the ${box_run_path}/err.log file." >> ${box_logs_file}
+            exit 1
+       fi
+    # CLASH
+    elif [ "${box_bin_name}" == "clash" ] ; then
+        ${box_bin_path} -t -d ${box_data_dir}/clash -f ${temporary_config_file} > ${box_run_path}/err.log
+        if [ "$?" = "0" ]
+        then
+            nohup ${busybox_path} setuidgid 0:3005 ${box_bin_path} -d ${box_data_dir}/clash -f ${temporary_config_file} > /dev/null 2> ${box_run_path}/warn.log &
+            # > ${box_run_path}/warn.log 2>&1 &
+            echo -n $! > ${box_pid_file}
+            sed -i s/.*msg=// ${box_run_path}/err.log
+            sed -i 's/configuration file*//' ${box_run_path}/err.log
+            while read p
+            do
+                echo ${date_log}"info:" "$p" >> ${box_logs_file}
+            done <${box_run_path}/err.log
+        else
+            echo $date_log"err: ${box_config_file} failed" >> ${box_logs_file}
+            sed -i s/.*msg=// ${box_run_path}/err.log
+            sed -i 's/fatal msg=*//' ${box_run_path}/err.log
+            sed -i 's/configuration file*//' ${box_run_path}/err.log
+            while read p
+            do
+                echo ${date_log}"err:" "$p" >> ${box_logs_file}
+            done <${box_run_path}/err.log
+
+            if [ "${use_config}" == "false" ]
+            then
+               mv ${temporary_config_file} ${box_config_file}
+            else
+               mv ${temporary_config_file} ${box_config_file}
+            fi
+
+            echo $date_log"err: recheck ${box_config_file} & template。" >> ${box_logs_file}
+            exit 1
+        fi
+    # XRAY
+    elif [ "${box_bin_name}" == "xray" ] ; then
+        export XRAY_LOCATION_ASSET=${box_data_dir}/xray
+        export XRAY_LOCATION_CONFDIR=${box_data_dir}/xray/confs
+        ${box_bin_path} -test > ${box_run_path}/err.log 2>&1
+        if [ "$?" = "0" ] ; then
+            echo $date_log"info: starting ${box_bin_name} service." >> ${box_logs_file}
+            nohup ${busybox_path} setuidgid 0:3005 ${box_bin_path} > /dev/null 2> ${box_run_path}/warn.log &
+            echo -n $! > ${box_pid_file}
+            
+            sed -i s/.*Using// ${box_run_path}/err.log
+            sed -i s/.*Reading// ${box_run_path}/err.log
+            sed -i "s/.*xctl>//" ${box_run_path}/err.log
+            while read p
+            do
+                echo ${date_log}"info:" "$p" >> ${box_logs_file}
+            done <${box_run_path}/err.log
+        else
+            sed -i s/.*Using// ${box_run_path}/err.log
+            sed -i s/.*main:// ${box_run_path}/err.log
+            sed -i s/.*Reading// ${box_run_path}/err.log
+            while read p
+            do
+                echo ${date_log}"err:" "$p" >> ${box_logs_file}
+            done <${box_run_path}/err.log
+            
+            echo $date_log"err: configuration check failed, please check the ${box_run_path}/err.log file." >> ${box_logs_file}
+            exit 1
+        fi
+    # V2RAY
+    elif [ "${box_bin_name}" == "v2fly" ] ; then
+        export V2RAY_LOCATION_ASSET=${box_data_dir}/xray
+        export V2RAY_LOCATION_CONFDIR=${box_data_dir}/xray/confs
+        ${box_bin_path} test > ${box_run_path}/err.log 2>&1
+        if [ "$?" = "0" ] ; then
+            echo $date_log"info: starting ${box_bin_name} service." >> ${box_logs_file}
+            nohup ${busybox_path} setuidgid 0:3005 ${box_bin_path} run > ${box_run_path}/warn.log 2>&1 &
+            echo -n $! > ${box_pid_file}
+            
+            sed -i s/.*Using// ${box_run_path}/err.log
+            while read p
+            do
+                echo ${date_log}"info:" "$p" >> ${box_logs_file}
+            done <${box_run_path}/err.log
+        else
+            echo $date_log"err: configuration check failed, please check the ${box_run_path}/err.log file." >> ${box_logs_file}
+            exit 1
+        fi
+    else
+        echo $date_log"err: kernel error." >> ${box_logs_file}
+        exit 1
+    fi
+    sleep 0.75
+    rm -rf ${box_run_path}/err.log
+}

@@ -1,0 +1,27 @@
+proxies:
+proxy-groups:
+  - name: "llycoris"
+    type: select
+    use: [
+        🌸
+    ]
+  - name: "✘ has been banned" 
+    type: select
+    proxies: [
+        REJECT,PASS
+    ]
+proxy-providers:
+  🌸:
+    type: file
+    path: ./assets/llycoris.list
+    health-check:
+      enable: true
+      url: http://cp.cloudflare.com/generate_204
+      interval: 1200
+rules:
+  - DOMAIN-SUFFIX,googlesyndication.com,llycoris
+  - AND,((DST-PORT,5228-5230),(NETWORK,TCP)),DIRECT
+  - GEOSITE,CATEGORY-ADS-ALL,✘ has been banned
+  - IP-CIDR,198.18.0.1/16,DIRECT,no-resolve
+  - IP-CIDR,127.0.0.1/32,DIRECT,no-resolve
+  - MATCH,llycoris
