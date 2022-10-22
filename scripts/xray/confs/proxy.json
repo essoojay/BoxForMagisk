@@ -10,7 +10,7 @@
       "settings": {
         "vnext": [
           {
-            "address": "",
+            "address": "server.com",
             "port": 443,
             "users": [
               {
@@ -30,12 +30,12 @@
         "security": "tls",
         "tlsSettings": {
           "allowInsecure": true,
-          "serverName": ""
+          "serverName": "host.com"
         },
         "wsSettings": {
           "path": "/path",
           "headers": {
-            "Host": ""
+            "Host": "host.com"
           }
         },
         "sockopt": {

@@ -19,6 +19,7 @@ proxy-providers:
       url: http://cp.cloudflare.com/generate_204
       interval: 1200
 rules:
+  - AND,((GEOSITE,YOUTUBE),(NETWORK,UDP)),REJECT
   - DOMAIN-SUFFIX,googlesyndication.com,llycoris
   - AND,((DST-PORT,5228-5230),(NETWORK,TCP)),DIRECT
   - GEOSITE,CATEGORY-ADS-ALL,✘ has been banned

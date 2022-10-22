@@ -1,0 +1,44 @@
+start_tun() {
+    ip rule add fwmark ${mark_id} table ${mark_id}
+    ip route add default dev ${tun_device} table ${mark_id}
+
+    ${iptables_wait} -I FORWARD -o ${tun_device} -j ACCEPT
+    ${iptables_wait} -I FORWARD -i ${tun_device} -j ACCEPT
+
+    ${iptables_wait} -t mangle -N BOX_EXTERNAL
+    ${iptables_wait} -t mangle -N BOX_LOCAL
+
+    for subnet in ${reserved_ip[*]} ; do
+        ${iptables_wait} -t mangle -A BOX_EXTERNAL -d ${subnet} -j RETURN
+    done
+
+    ${iptables_wait} -t mangle -A BOX_LOCAL -m owner --gid-owner 3005 -j RETURN
+
+    ${iptables_wait} -t mangle -A BOX_EXTERNAL -j MARK --set-xmark ${mark_id}
+    ${iptables_wait} -t mangle -I PREROUTING -j BOX_EXTERNAL
+
+    for subnet in ${reserved_ip[*]} ; do
+        ${iptables_wait} -t mangle -A BOX_LOCAL -d ${subnet} -j RETURN
+    done
+
+    ${iptables_wait} -t mangle -A BOX_LOCAL -m owner --uid-owner 0 --gid-owner 3005 -j RETURN
+    ${iptables_wait} -t mangle -A BOX_LOCAL -j MARK --set-xmark ${mark_id}
+    ${iptables_wait} -t mangle -I OUTPUT -j BOX_LOCAL
+
+}
+
+stop_tun() {
+    ip rule del fwmark ${mark_id} lookup ${mark_id}
+    ip route del default dev ${tun_device} table ${mark_id}
+
+    ${iptables_wait} -D FORWARD -o ${tun_device} -j ACCEPT
+    ${iptables_wait} -D FORWARD -i ${tun_device} -j ACCEPT
+
+    ${iptables_wait} -t mangle -D OUTPUT -j BOX_LOCAL
+    ${iptables_wait} -t mangle -F BOX_LOCAL
+    ${iptables_wait} -t mangle -X BOX_LOCAL
+
+    ${iptables_wait} -t mangle -D PREROUTING -j BOX_EXTERNAL
+    ${iptables_wait} -t mangle -F BOX_EXTERNAL
+    ${iptables_wait} -t mangle -X BOX_EXTERNAL
+}

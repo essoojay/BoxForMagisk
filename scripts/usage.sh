@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-usage_name=clash
+usage_name=sing-box
 
 getmemory(){
   box_pid=$(cat /data/box/run/${usage_name}.pid)

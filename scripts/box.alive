@@ -1,3 +1,15 @@
+
+tree_dir() {
+    tree -a /data/box/$box_bin_name > /data/box/run/tree.log 2>&1
+    awk '/./' /data/box/run/tree.log > /data/box/run/tree.logs
+    while read p
+    do
+        echo ${date_log}"info:" "$p" >> ${box_logs_file}
+    done <${box_run_path}/tree.logs
+    rm -rf /data/box/run/tree.log
+    rm -rf /data/box/run/tree.logs
+}
+
 run_clash() {
     ulimit -SHn 1000000
     # SING-BOX
@@ -10,11 +22,11 @@ run_clash() {
         else
             echo $date_log"info: sing-box tproxy ." >> ${box_logs_file}
         fi
-
-        ${box_bin_path} check -D ${box_data_dir}/sing-box > ${box_run_path}/err.log 2>&1 
+        tree_dir
+        ${box_bin_path} check -D ${box_data_dir}/sing-box -c ${box_data_dir}/sing-box/confs > ${box_run_path}/err.log 2>&1 
         if [ "$?" = "0" ] ; then
             echo $date_log"info: starting ${box_bin_name} service." >> ${box_logs_file}
-            nohup ${busybox_path} setuidgid 0:3005 ${box_bin_path} run -D ${box_data_dir}/${box_bin_name} > /dev/null 2> ${box_run_path}/warn.log &
+            nohup ${busybox_path} setuidgid 0:3005 ${box_bin_path} run -D ${box_data_dir}/sing-box -c ${box_data_dir}/sing-box/confs > /dev/null 2> ${box_run_path}/warn.log &
             echo -n $! > ${box_pid_file}
             sed -i 's/FATAL*//' ${box_run_path}/warn.log
             while read p
@@ -33,18 +45,20 @@ run_clash() {
        fi
     # CLASH
     elif [ "${box_bin_name}" == "clash" ] ; then
+        tree_dir
         ${box_bin_path} -t -d ${box_data_dir}/clash -f ${temporary_config_file} > ${box_run_path}/err.log
         if [ "$?" = "0" ]
         then
             nohup ${busybox_path} setuidgid 0:3005 ${box_bin_path} -d ${box_data_dir}/clash -f ${temporary_config_file} > /dev/null 2> ${box_run_path}/warn.log &
-            # > ${box_run_path}/warn.log 2>&1 &
             echo -n $! > ${box_pid_file}
-            sed -i s/.*msg=// ${box_run_path}/err.log
-            sed -i 's/configuration file*//' ${box_run_path}/err.log
-            while read p
-            do
-                echo ${date_log}"info:" "$p" >> ${box_logs_file}
-            done <${box_run_path}/err.log
+#            sed -i s/.*msg=// ${box_run_path}/err.log
+#            sed -i 's/configuration file*//' ${box_run_path}/err.log
+#            while read p
+#            do
+#                echo ${date_log}"info:" "$p" >> ${box_logs_file}
+#            done <${box_run_path}/err.log
+            echo $date_log"info: start initial configuration in progress" >> ${box_logs_file}
+            echo $date_log"info: /data/box/run/config.yaml test is successful" >> ${box_logs_file}
         else
             echo $date_log"err: ${box_config_file} failed" >> ${box_logs_file}
             sed -i s/.*msg=// ${box_run_path}/err.log
@@ -67,6 +81,7 @@ run_clash() {
         fi
     # XRAY
     elif [ "${box_bin_name}" == "xray" ] ; then
+        tree_dir
         export XRAY_LOCATION_ASSET=${box_data_dir}/xray
         export XRAY_LOCATION_CONFDIR=${box_data_dir}/xray/confs
         ${box_bin_path} -test > ${box_run_path}/err.log 2>&1
@@ -96,8 +111,9 @@ run_clash() {
         fi
     # V2RAY
     elif [ "${box_bin_name}" == "v2fly" ] ; then
-        export V2RAY_LOCATION_ASSET=${box_data_dir}/xray
-        export V2RAY_LOCATION_CONFDIR=${box_data_dir}/xray/confs
+        tree_dir
+        export V2RAY_LOCATION_ASSET=${box_data_dir}/v2fly
+        export V2RAY_LOCATION_CONFDIR=${box_data_dir}/v2fly/confs
         ${box_bin_path} test > ${box_run_path}/err.log 2>&1
         if [ "$?" = "0" ] ; then
             echo $date_log"info: starting ${box_bin_name} service." >> ${box_logs_file}

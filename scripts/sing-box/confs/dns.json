@@ -1,0 +1,37 @@
+{
+  "log": {
+    "disabled": false,
+    "level": "error",
+    "output": "../run/box.log",
+    "timestamp": false
+  },
+  "dns": {
+    "rules": [
+      {
+        "geosite": [
+            "youtube"
+        ],
+        "server": "google"
+      }
+    ],
+    "final": "cloudflare",
+    "strategy": "ipv4_only",
+    "servers": [
+      {
+        "tag": "cloudflare",
+        "address": "https://1.1.1.1/dns-query",
+        "detour": "singbox-out"
+      },
+      {
+        "tag": "google",
+        "address": "https://8.8.8.8/dns-query",
+        "detour": "singbox-out"
+      },
+      {
+        "tag": "xl",
+        "address": "https://112.215.229.254/dns-query",
+        "detour": "direct"
+      }
+    ]
+  }
+}

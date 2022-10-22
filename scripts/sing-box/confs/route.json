@@ -1,0 +1,45 @@
+{
+  "route": {
+    "final": "singbox-out",
+    "geoip": {
+      "download_url": "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db",
+      "download_detour": "singbox-out"
+    },
+    "geosite": {
+      "download_url": "",
+      "download_detour": "singbox-out"
+    },
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "domain_regex": [
+            "\\.googlesyndication.*\\.com$"
+            ],
+        "outbound": "singbox-out"
+      },
+      {
+        "geosite": [
+            "category-ads-all"
+            ],
+        "outbound": "✘ has been ban"
+      },
+      {
+        "network": "udp",
+        "port": 123,
+        "outbound": "direct-out"
+      },
+      {
+        "network": "tcp",
+        "port_range": [
+            "5228:5230"
+            ],
+        "outbound": "direct-out"
+      }
+    ],
+    "auto_detect_interface": true,
+    "override_android_vpn": true
+  }
+}

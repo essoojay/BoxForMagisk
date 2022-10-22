@@ -133,7 +133,7 @@ temporary_config_file() {
     fi
 
     mv ${temporary_config_file}.swp ${temporary_config_file} \
-    && echo $date_log"info: merge files ${box_config_file} & template Succes。" >> ${box_logs_file} || echo $date_log"err: merge files ${box_config_file} & template failed !!!" >> ${box_logs_file}
+    && echo "" || echo $date_log"err: merge files ${box_config_file} & template failed !!!" >> ${box_logs_file}
 
     if [ ! -f "${temporary_config_file}" ]
     then
@@ -147,8 +147,6 @@ crontab_sec() {
         then
             echo "${schedule_update_core} ${scripts_dir}/box.tool -k" >> ${box_run_path}/root \
             && echo $date_log"info: Crontab Update kernel (${schedule_update_core})" >> ${box_logs_file}
-        else
-            echo $date_log"info: Update kernel is disable。" >> ${box_logs_file}
         fi
         if [ ! "${update_interval}" == "false" ]
         then
@@ -217,7 +215,7 @@ start_clash() {
         fi
     fi
 
-    echo "CPU: null / RES: null" >> $box_logs_file
+    echo "CPU: ... / RES: ..." >> $box_logs_file
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >> ${box_logs_file}
 
     if [ "${box_bin_name}" == "clash" ]

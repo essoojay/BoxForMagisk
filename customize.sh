@@ -44,6 +44,7 @@ mkdir -p ${box_data_dir}/run
 mkdir -p ${box_data_dir}/scripts
 mkdir -p ${box_data_dir}/assets
 mkdir -p ${box_data_dir}/xray/confs
+mkdir -p ${box_data_dir}/v2fly/confs
 mkdir -p ${box_data_dir}/sing-box
 mkdir -p ${box_data_dir}/clash
 
@@ -76,6 +77,8 @@ mv ${box_data_dir}/scripts/cacert.pem ${MODPATH}${ca_path}
 mv ${MODPATH}/GeoX/* ${box_data_dir}/clash/
 cp ${box_data_dir}/clash/GeoIP.dat ${box_data_dir}/xray/geoip.dat
 cp ${box_data_dir}/clash/GeoSite.dat ${box_data_dir}/xray/geosite.dat
+cp ${box_data_dir}/clash/GeoIP.dat ${box_data_dir}/v2fly/geoip.dat
+cp ${box_data_dir}/clash/GeoSite.dat ${box_data_dir}/v2fly/geosite.dat
 
 if [ ! -d /data/adb/service.d ] ; then
     ui_print "- make folder service"
@@ -110,6 +113,7 @@ mv ${box_data_dir_kernel}/getpcaps ${MODPATH}${bin_path}/
 mv ${box_data_dir_kernel}/getcap ${MODPATH}${bin_path}/
 mv ${box_data_dir}/scripts/settings.ini ${box_data_dir}/
 mv ${box_data_dir}/scripts/xray/confs ${box_data_dir}/xray/
+mv ${box_data_dir}/scripts/v2fly/confs ${box_data_dir}/v2fly/
 mv ${box_data_dir}/scripts/sing-box ${box_data_dir}/
 mv ${box_data_dir}/scripts/clash/* ${box_data_dir}/clash/
 
@@ -120,6 +124,7 @@ else
 fi
 
 rm -rf ${box_data_dir}/scripts/xray
+rm -rf ${box_data_dir}/scripts/v2fly
 rm -rf ${MODPATH}/dashboard.zip
 rm -rf ${MODPATH}/scripts
 rm -rf ${MODPATH}/GeoX
@@ -145,8 +150,14 @@ fi
 
 if [ -d ${box_data_dir}/${latest}/xray ]
 then
-    ui_print "- restore clash"
+    ui_print "- restore xray"
     mv ${box_data_dir}/${latest}/xray/confs/* ${box_data_dir}/xray/confs/
+fi
+
+if [ -d ${box_data_dir}/${latest}/v2fly ]
+then
+    ui_print "- restore v2fly"
+    mv ${box_data_dir}/${latest}/v2fly/confs/* ${box_data_dir}/v2fly/confs/
 fi
 
 ui_print "- Set Permissons"
