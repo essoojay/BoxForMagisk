@@ -1,21 +1,5 @@
 {
-  "log": {
-    "disabled": false,
-    "level": "error",
-    "output": "../run/box.log",
-    "timestamp": false
-  },
   "dns": {
-    "rules": [
-      {
-        "geosite": [
-            "youtube"
-        ],
-        "server": "google"
-      }
-    ],
-    "final": "cloudflare",
-    "strategy": "ipv4_only",
     "servers": [
       {
         "tag": "cloudflare",
@@ -24,14 +8,33 @@
       },
       {
         "tag": "google",
-        "address": "https://8.8.8.8/dns-query",
+        "address": "tcp://8.8.8.8",
         "detour": "singbox-out"
       },
       {
-        "tag": "xl",
+        "tag": "dnsxl",
         "address": "https://112.215.229.254/dns-query",
         "detour": "direct"
       }
-    ]
+    ],
+    "rules": [
+      {
+        "geosite": [
+            "youtube"
+        ],
+        "server": "google"
+      },
+      {
+        "network": "tcp",
+        "port_range": [
+            "5228:5230"
+        ],
+        "server": "dnsxl"
+      }
+    ],
+    "final": "cloudflare",
+    "strategy": "prefer_ipv4",
+    "disable_cache": false,
+    "disable_expire": false
   }
 }

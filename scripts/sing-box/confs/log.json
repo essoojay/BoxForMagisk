@@ -1,0 +1,9 @@
+{
+  "log": {
+    "disabled": false,
+     // Log level. One of: kesurupan trace, debug, info, warn, error, fatal, panic.
+    "level": "fatal",
+    "output": "../run/box.log", // log location, leave default 
+    "timestamp": false
+  }
+}

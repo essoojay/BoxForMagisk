@@ -227,9 +227,8 @@ start_clash() {
         temporary_config_file
     fi
 
-    chown root:net_admin ${box_bin_path}
+    chown 0:3005 ${box_bin_path}
     chmod 6755 ${box_bin_path}
-
     setcap 'cap_net_admin,cap_net_raw+ep' ${box_bin_path}
 
     if [ "${box_bin_name}" == "clash" ]
@@ -299,7 +298,10 @@ stop_clash() {
 
     kill_tool
 
-    rm -rf /data/box/kernel/$box_bin_name
+    if [ -f /data/box/kernel/$box_bin_name ]
+    then
+        rm -rf /data/box/kernel/$box_bin_name
+    fi
     echo $date_log"warn: $box_bin_name shutting down。" >> ${box_logs_file}
 }
 

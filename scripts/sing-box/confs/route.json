@@ -2,11 +2,10 @@
   "route": {
     "final": "singbox-out",
     "geoip": {
-      "download_url": "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db",
       "download_detour": "singbox-out"
     },
     "geosite": {
-      "download_url": "",
+      "download_url": "https://github.com/taamarin/sing-geosite/raw/release/geosite.db",
       "download_detour": "singbox-out"
     },
     "rules": [
@@ -16,14 +15,14 @@
       },
       {
         "domain_regex": [
-            "\\.googlesyndication.*\\.com$"
-            ],
+          "\\.googlesyndication.*\\.com$"
+          ],
         "outbound": "singbox-out"
       },
       {
         "geosite": [
-            "category-ads-all"
-            ],
+          "category-ads-all"
+          ],
         "outbound": "✘ has been ban"
       },
       {
@@ -34,12 +33,27 @@
       {
         "network": "tcp",
         "port_range": [
-            "5228:5230"
+          "5228:5230"
             ],
+        "domain_keyword": [
+          "google"
+        ],
         "outbound": "direct-out"
       }
     ],
-    "auto_detect_interface": true,
-    "override_android_vpn": true
+    // setting to "true" when using TUN
+    "override_android_vpn": false,
+    "auto_detect_interface": false
+  },
+  "experimental": {
+    "clash_api": {
+      "external_controller": "0.0.0.0:9090",
+      "external_ui": "../dashboard/dist", // dashboard ui location
+      "secret": "",
+      "direct_io": false,
+      "default_mode": "rule",
+      "store_selected": true,
+      "cache_file": "cache.db"
+    }
   }
 }

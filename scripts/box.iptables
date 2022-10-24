@@ -34,7 +34,7 @@ start_tproxy() {
   ${iptables_wait} -t mangle -N BOX_EXTERNAL
   ${iptables_wait} -t mangle -F BOX_EXTERNAL
 
-  # Bypass box itself
+  # bypass box itself
   # ${iptables_wait} -t mangle -A BOX_EXTERNAL -j RETURN -m mark --mark ${routing_mark}
 
   # Bypass other if
@@ -173,18 +173,20 @@ stop_tproxy() {
 
   ${iptables_wait} -D OUTPUT -d 127.0.0.1 -p tcp -m owner --uid-owner 0 --gid-owner 3005 -m tcp --dport ${box_tproxy_port} -j REJECT
 
-  ${iptables_wait} -t nat -D PREROUTING -j CLASH_DNS_EXTERNAL
+  if [ "${box_bin_name}" == "clash" ] ; then
+      ${iptables_wait} -t nat -D PREROUTING -j CLASH_DNS_EXTERNAL
 
-  ${iptables_wait} -t nat -D OUTPUT -j CLASH_DNS_LOCAL
+      ${iptables_wait} -t nat -D OUTPUT -j CLASH_DNS_LOCAL
 
-  ${iptables_wait} -t nat -F CLASH_DNS_EXTERNAL
-  ${iptables_wait} -t nat -X CLASH_DNS_EXTERNAL
+      ${iptables_wait} -t nat -F CLASH_DNS_EXTERNAL
+      ${iptables_wait} -t nat -X CLASH_DNS_EXTERNAL
 
-  ${iptables_wait} -t nat -F CLASH_DNS_LOCAL
-  ${iptables_wait} -t nat -X CLASH_DNS_LOCAL
+      ${iptables_wait} -t nat -F CLASH_DNS_LOCAL
+      ${iptables_wait} -t nat -X CLASH_DNS_LOCAL
 
-  ${iptables_wait} -t nat -D OUTPUT -d ${box_fake_ip_range} -p icmp -j DNAT --to-destination 127.0.0.1
-  ${iptables_wait} -t nat -D PREROUTING -d ${box_fake_ip_range} -p icmp -j DNAT --to-destination 127.0.0.1
+      ${iptables_wait} -t nat -D OUTPUT -d ${box_fake_ip_range} -p icmp -j DNAT --to-destination 127.0.0.1
+      ${iptables_wait} -t nat -D PREROUTING -d ${box_fake_ip_range} -p icmp -j DNAT --to-destination 127.0.0.1
+  fi
 }
 
 # . /data/box/scripts/box.tun
@@ -226,10 +228,10 @@ while getopts ":sk" signal ; do
            then
               echo $date_log"warn: cleaning up iptables transparent proxy rules." >> ${box_logs_file}
               stop_tproxy \
-              && echo $date_log"warn: clean up iptables transparent proxy rules done." >> ${box_logs_file} || $date_log"warn: clean up iptables transparent proxy rule failed."itu >> ${box_logs_file}
+              && echo $date_log"warn: clean up iptables transparent proxy rules done." >> ${box_logs_file} || echo $date_log"warn: clean up iptables transparent proxy rule failed." >> ${box_logs_file}
            else
               stop_tun \
-              && echo $date_log"warn: clean up iptables tun rules done." >> ${box_logs_file} || $date_log"warn: clean up iptables tun rule failed."itu >> ${box_logs_file}
+              && echo $date_log"warn: clean up iptables tun rules done." >> ${box_logs_file} || echo $date_log"warn: clean up iptables tun rule failed." >> ${box_logs_file}
            fi
           ;;
         ?)

@@ -348,7 +348,7 @@ dnstt_client() {
             chown root:net_admin ${dnstt_client_bin}
             if [ ! ${nsdomain} == "" ] && [ ! ${pubkey} == "" ]
             then
-               nohup ${busybox_path} setuidgid 0:3005 $dnstt_client_bin -udp ${dns_for_dnstt}:53 -pubkey ${pubkey} ${nsdomain} 127.0.0.1:9553 > /dev/null 2>&1 &
+               nohup ${busybox_path} setuidgid 0:3005 $dnstt_client_bin -udp ${dns_for_dnstt}:53 -pubkey ${pubkey} ${nsdomain} 127.0.0.1:${port_dnstt} > /dev/null 2>&1 &
                echo -n $! > ${box_run_path}/dnstt.pid
 
                sleep 1

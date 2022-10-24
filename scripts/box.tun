@@ -8,7 +8,8 @@ start_tun() {
     ${iptables_wait} -t mangle -N BOX_EXTERNAL
     ${iptables_wait} -t mangle -N BOX_LOCAL
 
-    for subnet in ${reserved_ip[*]} ; do
+    for subnet in ${reserved_ip[@]}
+    do
         ${iptables_wait} -t mangle -A BOX_EXTERNAL -d ${subnet} -j RETURN
     done
 
@@ -17,14 +18,14 @@ start_tun() {
     ${iptables_wait} -t mangle -A BOX_EXTERNAL -j MARK --set-xmark ${mark_id}
     ${iptables_wait} -t mangle -I PREROUTING -j BOX_EXTERNAL
 
-    for subnet in ${reserved_ip[*]} ; do
+    for subnet in ${reserved_ip[@]}
+    do
         ${iptables_wait} -t mangle -A BOX_LOCAL -d ${subnet} -j RETURN
     done
 
     ${iptables_wait} -t mangle -A BOX_LOCAL -m owner --uid-owner 0 --gid-owner 3005 -j RETURN
     ${iptables_wait} -t mangle -A BOX_LOCAL -j MARK --set-xmark ${mark_id}
     ${iptables_wait} -t mangle -I OUTPUT -j BOX_LOCAL
-
 }
 
 stop_tun() {

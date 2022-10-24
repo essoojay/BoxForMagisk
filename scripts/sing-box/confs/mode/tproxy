@@ -2,9 +2,9 @@
   "inbounds": [
     {
       "type": "tproxy",
-      "tag": "tproxy-in",
+      "tag": "花火",
       "listen": "::",
-      "listen_port": 9553, // don't change 
+      "listen_port": 9553, // do not replace, leave the default "9553"
       "network": [
         "udp",
         "tcp"

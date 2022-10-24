@@ -14,14 +14,18 @@ run_clash() {
     ulimit -SHn 1000000
     # SING-BOX
     if [ "${box_bin_name}" == "sing-box" ] ; then
+
         if [ "${box_tun_status}" == "true" ]
         then
             mkdir -p /dev/net
             [ ! -L /dev/net/tun ] && ln -sf /dev/tun /dev/net/tun
+            cp -f /data/box/sing-box/confs/mode/tun /data/box/sing-box/confs/inbounds.json
             echo $date_log"info: sing-box tun ." >> ${box_logs_file}
         else
+            cp -f /data/box/sing-box/confs/mode/tproxy /data/box/sing-box/confs/inbounds.json
             echo $date_log"info: sing-box tproxy ." >> ${box_logs_file}
         fi
+
         tree_dir
         ${box_bin_path} check -D ${box_data_dir}/sing-box -c ${box_data_dir}/sing-box/confs > ${box_run_path}/err.log 2>&1 
         if [ "$?" = "0" ] ; then

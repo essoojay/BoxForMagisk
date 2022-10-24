@@ -42,7 +42,6 @@ mkdir -p ${box_data_dir}/dashboard
 mkdir -p ${MODPATH}/system/bin
 mkdir -p ${box_data_dir}/run
 mkdir -p ${box_data_dir}/scripts
-mkdir -p ${box_data_dir}/assets
 mkdir -p ${box_data_dir}/xray/confs
 mkdir -p ${box_data_dir}/v2fly/confs
 mkdir -p ${box_data_dir}/sing-box
@@ -98,9 +97,9 @@ ui_print "- make packages.list"
 if [ ! -f "${box_data_dir}/scripts/packages.list" ] ; then
     touch ${box_data_dir}/packages.list
 fi
-#temporary fix for Redmi K50, need a generic fix for devices imcompatible with the entry "wlan+" here and instead replace with "ap+"
-echo "" > /data/box/ignore_out.list
-[ "$(getprop ro.product.device)" = "rubens" ] && echo "ap+" > /data/adb/box/ap.list || echo "wlan+" > /data/box/ap.list
+# temporary fix for Redmi K50, need a generic fix for devices imcompatible with the entry "wlan+" here and instead replace with "ap+"
+# $echo "" > /data/box/ignore_out.list
+# [ "$(getprop ro.product.device)" = "rubens" ] && echo "ap+" > /data/adb/box/ap.list || echo "wlan+" > /data/box/ap.list
 
 unzip -j -o "${ZIPFILE}" 'service.sh' -d ${MODPATH} >&2
 unzip -j -o "${ZIPFILE}" 'uninstall.sh' -d ${MODPATH} >&2
