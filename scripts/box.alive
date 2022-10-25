@@ -14,20 +14,22 @@ run_clash() {
     ulimit -SHn 1000000
     # SING-BOX
     if [ "${box_bin_name}" == "sing-box" ] ; then
-
         if [ "${box_tun_status}" == "true" ]
         then
             mkdir -p /dev/net
             [ ! -L /dev/net/tun ] && ln -sf /dev/tun /dev/net/tun
-            cp -f /data/box/sing-box/confs/mode/tun /data/box/sing-box/confs/inbounds.json
+            cp ${sing_confs}/mode/tun ${sing_confs}/inbounds.json
+            sed -i 's/"auto_detect_interface":.*/"auto_detect_interface": true/' ${sing_confs}/route.json
+            sed -i 's/"override_android_vpn":.*/"override_android_vpn": true,/' ${sing_confs}/route.json
             echo $date_log"info: sing-box tun ." >> ${box_logs_file}
         else
-            cp -f /data/box/sing-box/confs/mode/tproxy /data/box/sing-box/confs/inbounds.json
+            cp ${sing_confs}/mode/tproxy ${sing_confs}/inbounds.json
+            sed -i 's/"auto_detect_interface":.*/"auto_detect_interface": false/' ${sing_confs}/route.json
+            sed -i 's/"override_android_vpn":.*/"override_android_vpn": false,/' ${sing_confs}/route.json
             echo $date_log"info: sing-box tproxy ." >> ${box_logs_file}
         fi
-
         tree_dir
-        ${box_bin_path} check -D ${box_data_dir}/sing-box -c ${box_data_dir}/sing-box/confs > ${box_run_path}/err.log 2>&1 
+        ${box_bin_path} check -D ${box_data_dir}/sing-box -c ${sing_confs} > ${box_run_path}/err.log 2>&1 
         if [ "$?" = "0" ] ; then
             echo $date_log"info: starting ${box_bin_name} service." >> ${box_logs_file}
             nohup ${busybox_path} setuidgid 0:3005 ${box_bin_path} run -D ${box_data_dir}/sing-box -c ${box_data_dir}/sing-box/confs > /dev/null 2> ${box_run_path}/warn.log &
@@ -87,7 +89,7 @@ run_clash() {
     elif [ "${box_bin_name}" == "xray" ] ; then
         tree_dir
         export XRAY_LOCATION_ASSET=${box_data_dir}/xray
-        export XRAY_LOCATION_CONFDIR=${box_data_dir}/xray/confs
+        export XRAY_LOCATION_CONFDIR=${xray_confs}
         ${box_bin_path} -test > ${box_run_path}/err.log 2>&1
         if [ "$?" = "0" ] ; then
             echo $date_log"info: starting ${box_bin_name} service." >> ${box_logs_file}
@@ -117,7 +119,7 @@ run_clash() {
     elif [ "${box_bin_name}" == "v2fly" ] ; then
         tree_dir
         export V2RAY_LOCATION_ASSET=${box_data_dir}/v2fly
-        export V2RAY_LOCATION_CONFDIR=${box_data_dir}/v2fly/confs
+        export V2RAY_LOCATION_CONFDIR=${v2fly_confs}
         ${box_bin_path} test > ${box_run_path}/err.log 2>&1
         if [ "$?" = "0" ] ; then
             echo $date_log"info: starting ${box_bin_name} service." >> ${box_logs_file}

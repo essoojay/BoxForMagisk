@@ -2,7 +2,7 @@
   "inbounds": [
     {
       "type": "tproxy",
-      "tag": "花火",
+      "tag": "tproxy",
       "listen": "::",
       "listen_port": 9553, // do not replace, leave the default "9553"
       "network": [

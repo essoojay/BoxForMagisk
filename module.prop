@@ -1,7 +1,7 @@
 id=BoxForMagisk
 name=Box for Magisk
-version=v2.0
-versionCode=20221020
+version=v2.1
+versionCode=20221025
 author=t🌸amarin
 description=Use iptables to support "clash", v2fly", "xray", and "sing-box", transparent proxy.
 updateJson=https://github.com/taamarin/BoxForMagisk/raw/master/update.json
