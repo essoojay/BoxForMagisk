@@ -25,7 +25,7 @@ dow_config() {
 
 date_clash() {
     echo -n "" > ${box_logs_file} && echo "${date_day}" >> ${box_logs_file}
-    echo "Box for Magisk v2.0" > /dev/null 2>&1
+    echo "Box for Magisk v2.1" > /dev/null 2>&1
 }
 
 replace_kernel() {
