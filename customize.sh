@@ -29,7 +29,6 @@ ui_print "- Installing Clash for Magisk"
 
 if [ -d "${box_data_dir}" ] ; then
     ui_print "- backup clash"
-    rm -rf ${box_data_dir}/${latest}
     mkdir -p ${box_data_dir}/${latest}
     mv ${box_data_dir}/* ${box_data_dir}/${latest}/
 fi
@@ -134,30 +133,6 @@ rm -rf ${box_data_dir}/scripts/clash
 rm -rf ${box_data_dir_kernel}/curl
 
 sleep 1
-
-if [ -d ${box_data_dir}/${latest}/clash ]
-then
-    ui_print "- restore clash"
-    mv ${box_data_dir}/${latest}/clash/* ${box_data_dir}/clash/
-fi
-
-if [ -d ${box_data_dir}/${latest}/sing-box ]
-then
-    ui_print "- restore sing-box"
-    mv ${box_data_dir}/${latest}/sing-box/* ${box_data_dir}/sing-box/
-fi
-
-if [ -d ${box_data_dir}/${latest}/xray ]
-then
-    ui_print "- restore xray"
-    mv ${box_data_dir}/${latest}/xray/confs/* ${box_data_dir}/xray/confs/
-fi
-
-if [ -d ${box_data_dir}/${latest}/v2fly ]
-then
-    ui_print "- restore v2fly"
-    mv ${box_data_dir}/${latest}/v2fly/confs/* ${box_data_dir}/v2fly/confs/
-fi
 
 ui_print "- Set Permissons"
 set_perm_recursive ${MODPATH} 0 0 0755 0644
